@@ -59,57 +59,38 @@
       });
 
       // Create video element
-      const video = document.createElement("video");
-video.src = "./assets/Flourish.mp4";
-video.crossOrigin = "anonymous";
-video.loop = true;
-video.muted = true;
-video.playsInline = true;
+      const video = document.createElement('video');
+      video.src = './assets/Flourish.mp4'; // your video
+      video.crossOrigin = 'anonymous';
+      video.loop = true;
+      video.muted = true;       // ✅ required for autoplay
+      video.playsInline = true; // ✅ for iOS Safari
+      await video.play();       // ✅ plays silently
 
-// Ensure video actually starts
-video.addEventListener("loadeddata", () => {
-  console.log("✅ Video loaded");
-  video.play().then(() => {
-    console.log("✅ Video playing");
-  }).catch(err => console.warn("⚠️ Autoplay blocked:", err));
-});
+      // Video texture mapped onto a plane
+      const texture = new THREE.VideoTexture(video);
+      const geometry = new THREE.PlaneGeometry(1, 0.5625); // 16:9 ratio
+      const material = new THREE.MeshBasicMaterial({ map: texture });
+      const plane = new THREE.Mesh(geometry, material);
 
-await video.play();
+      const anchor = mindarThree.addAnchor(0);
+      anchor.group.add(plane);
 
-const texture = new THREE.VideoTexture(video);
-texture.encoding = THREE.sRGBEncoding; // Better color accuracy
-texture.minFilter = THREE.LinearFilter;
-texture.magFilter = THREE.LinearFilter;
+      // Handle tap-to-unmute
+      const unmuteBtn = document.getElementById('unmute-btn');
 
+      anchor.onTargetFound = () => {
+        unmuteBtn.style.display = 'block';
+      };
+      anchor.onTargetLost = () => {
+        unmuteBtn.style.display = 'none';
+      };
 
-      const debugGeometry = new THREE.PlaneGeometry(2, 1.2);
-const debugMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.DoubleSide });
-const debugPlane = new THREE.Mesh(debugGeometry, debugMaterial);
-
-// Force in front of camera
-debugPlane.position.set(0, 0, -3);
-scene.add(debugPlane);
-
-      
-const geometry = new THREE.PlaneGeometry(1, 0.5625);
-const material = new THREE.MeshBasicMaterial({ map: texture });
-
-const plane = new THREE.Mesh(geometry, material);
-plane.rotation.x = Math.PI; // flip to face correctly
-
-const anchor = mindarThree.addAnchor(0);
-anchor.group.add(plane);
-
-anchor.onTargetFound = () => {
-  console.log("✅ Marker detected");
-  document.getElementById("unmute-btn").style.display = "block";
-};
-anchor.onTargetLost = () => {
-  console.log("❌ Marker lost");
-  document.getElementById("unmute-btn").style.display = "none";
-};
-
-
+      unmuteBtn.addEventListener('click', () => {
+        video.muted = false;
+        video.play();
+        unmuteBtn.style.display = 'none';
+      });
     };
 
     start();
