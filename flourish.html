@@ -2,101 +2,96 @@
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ARmind.js Video with Sound</title>
-
-  <!-- Load ARmind.js (or your specific build) -->
-
-
-  
+  <title>MindAR.js Video Overlay</title>
   <style>
-    body { margin: 0; overflow: hidden; background: black; }
+    /* 1) Make sure the container actually fills the screen */
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+    #container { width: 100%; height: 100%; position: relative; }
     #unmute-btn {
       position: absolute;
-      bottom: 20px;
-      left: 50%;
+      bottom: 20px; left: 50%;
       transform: translateX(-50%);
-      background: rgba(0,0,0,0.7);
-      color: #fff;
-      border: none;
-      padding: 10px 20px;
-      font-size: 16px;
-      border-radius: 8px;
-      display: none;
-      cursor: pointer;
+      background: rgba(0,0,0,0.7); color: #fff;
+      border: none; padding: 10px 20px;
+      font-size: 16px; border-radius: 8px;
+      display: none; cursor: pointer;
+      z-index: 2;
     }
   </style>
 </head>
 <body>
+  <div id="container"></div>
   <button id="unmute-btn">🔊 Tap for Sound</button>
 
   <script type="importmap">
-{
-  "imports": {
-    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
-    "mindar-image-three":"https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "mindar-image-three":"https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"
+    }
   }
-}
-</script>
+  </script>
 
-  
   <script type="module">
+    import * as THREE from 'three';
+    import { MindARThree } from 'mindar-image-three';
 
-  import * as THREE from 'three';
-  import { MindARThree } from 'mindar-image-three';
-    
-    // Setup ARmind (same as MindAR)
+    // 1) Init MindAR + Three, but don't start yet
     const mindarThree = new MindARThree({
-      container: document.body,
-      imageTargetSrc: './targets.mind',  // compiled marker
+      container: document.querySelector('#container'),
+      imageTargetSrc: './targets.mind',
     });
     const { renderer, scene, camera } = mindarThree;
 
-    const start = async () => {
-      await mindarThree.start();
-      renderer.setAnimationLoop(() => {
-        renderer.render(scene, camera);
-      });
+    // 2) Create your video element (off‐DOM)
+    const video = document.createElement('video');
+    video.src = './assets/Flourish.mp4';
+    video.crossOrigin = 'anonymous';
+    video.loop = true;
+    video.muted = true;       // required to autoplay silently
+    video.playsInline = true; // iOS Safari
+    video.preload = 'auto';
 
-      // Create video element
-      const video = document.createElement('video');
-      video.src = './assets/Flourish.mp4'; // your video
-      video.crossOrigin = 'anonymous';
-      video.loop = true;
-      video.muted = true;       // ✅ required for autoplay
-      video.playsInline = true; // ✅ for iOS Safari
-      await video.play();       // ✅ plays silently
+    // 3) Build your VideoTexture + plane _before_ starting
+    const texture = new THREE.VideoTexture(video);
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.format = THREE.RGBFormat;
 
-      // Video texture mapped onto a plane
-      const texture = new THREE.VideoTexture(video);
-      renderer.outputColorSpace = THREE.SRGBColorSpace;
-      texture.colorSpace = THREE.SRGBColorSpace;
-      
-      const geometry = new THREE.PlaneGeometry(1, 0.5625); // 16:9 ratio
-      const material = new THREE.MeshBasicMaterial({ map: texture });
-      const plane = new THREE.Mesh(geometry, material);
+    const geometry = new THREE.PlaneGeometry(1, 0.5625); // 16:9
+    const material = new THREE.MeshBasicMaterial({ map: texture });
+    const plane = new THREE.Mesh(geometry, material);
 
-      const anchor = mindarThree.addAnchor(0);
-      anchor.group.add(plane);
+    // 4) Create anchor and add your mesh
+    const anchor = mindarThree.addAnchor(0);
+    anchor.group.add(plane);
 
-      // Handle tap-to-unmute
-      const unmuteBtn = document.getElementById('unmute-btn');
-
-      anchor.onTargetFound = () => {
-        unmuteBtn.style.display = 'block';
-      };
-      anchor.onTargetLost = () => {
-        unmuteBtn.style.display = 'none';
-      };
-
-      unmuteBtn.addEventListener('click', () => {
-        video.muted = false;
-        video.play();
-        unmuteBtn.style.display = 'none';
-      });
+    // 5) When marker is found/lost, play or pause
+    anchor.onTargetFound = async () => {
+      await video.play().catch(_=>{});     // start silently
+      document.getElementById('unmute-btn').style.display = 'block';
+    };
+    anchor.onTargetLost = () => {
+      video.pause();
+      document.getElementById('unmute-btn').style.display = 'none';
     };
 
-    start();
+    // 6) Unmute button
+    document.getElementById('unmute-btn').addEventListener('click', () => {
+      video.muted = false;
+      video.play();
+      document.getElementById('unmute-btn').style.display = 'none';
+    });
+
+    // 7) Now start AR and render
+    await mindarThree.start();
+    renderer.setAnimationLoop(() => {
+      // force-update the texture if needed:
+      if (video.readyState >= video.HAVE_CURRENT_DATA) {
+        texture.needsUpdate = true;
+      }
+      renderer.render(scene, camera);
+    });
   </script>
 </body>
 </html>
