@@ -30,16 +30,19 @@
   <button id="unmute-btn">🔊 Tap for Sound</button>
 
   <script type="module">
+  import * as THREE from 'three';
+  import { MindARThree } from 'mindar-face-three';
+    
     // Setup ARmind (same as MindAR)
-    const mindarThree = new window.MINDAR.IMAGE.MindARThree({
+    /*const mindarThree = new window.MINDAR.IMAGE.MindARThree({
       container: document.body,
       imageTargetSrc: './targets.mind',  // compiled marker
-    });
+    });*/
 
     const { renderer, scene, camera } = mindarThree;
 
     const start = async () => {
-      await mindarThree.start();
+      await MindARThree.start();
       renderer.setAnimationLoop(() => {
         renderer.render(scene, camera);
       });
