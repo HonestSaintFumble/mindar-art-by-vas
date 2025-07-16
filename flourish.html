@@ -46,11 +46,10 @@
   import { MindARThree } from 'mindar-image-three';
     
     // Setup ARmind (same as MindAR)
-    /*const mindarThree = new window.MINDAR.IMAGE.MindARThree({
+    const mindarThree = new MindARThree({
       container: document.body,
       imageTargetSrc: './targets.mind',  // compiled marker
-    });*/
-    debugger;
+    });
     const { renderer, scene, camera } = mindarThree;
 
     const start = async () => {
