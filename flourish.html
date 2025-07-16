@@ -82,26 +82,28 @@ texture.minFilter = THREE.LinearFilter;
 texture.magFilter = THREE.LinearFilter;
 
 // Skip marker anchor, just add a visible plane in front of camera
-const geometry = new THREE.PlaneGeometry(1, 0.5625);
-const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-const debugPlane = new THREE.Mesh(geometry, material);
+const geometry = new THREE.PlaneGeometry(2, 1.2); // BIGGER plane
+const material = new THREE.MeshBasicMaterial({
+  color: 0xff0000,
+  side: THREE.DoubleSide // ✅ ensure both sides are visible
+});
+const plane = new THREE.Mesh(geometry, material);
 
-// Place plane in front of camera
-debugPlane.position.set(0, 0, -2); 
+// Force rotation and position so it faces camera
+plane.position.set(0, 0, 0);
+plane.rotation.set(0, 0, 0);
 
-scene.add(debugPlane);
-
-
+// Anchor plane to marker
 const anchor = mindarThree.addAnchor(0);
 anchor.group.add(plane);
 
 anchor.onTargetFound = () => {
   console.log("✅ Marker detected");
-  document.getElementById("unmute-btn").style.display = "block";
+  plane.visible = true;  // ensure it's visible
 };
 anchor.onTargetLost = () => {
   console.log("❌ Marker lost");
-  document.getElementById("unmute-btn").style.display = "none";
+  plane.visible = false;
 };
 
     };
