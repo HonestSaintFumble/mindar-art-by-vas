@@ -58,13 +58,24 @@
     texture.magFilter = THREE.LinearFilter;
     texture.format = THREE.RGBFormat;
 
-    const geometry = new THREE.PlaneGeometry(1, 0.5625); // 16:9
-    const material = new THREE.MeshBasicMaterial({ map: texture });
-    const plane = new THREE.Mesh(geometry, material);
+    // … your existing code up to material definition …
 
-    // 4) Create anchor and add your mesh
-    const anchor = mindarThree.addAnchor(0);
-    anchor.group.add(plane);
+const geometry = new THREE.PlaneGeometry(1, 0.5625); // 16:9
+const material = new THREE.MeshBasicMaterial({
+  map: texture,
+  side: THREE.DoubleSide,    // <— allow both faces, just in case
+});
+const plane = new THREE.Mesh(geometry, material);
+
+// rotate so the plane sits flush with the marker
+plane.rotation.x = -Math.PI / 2;
+
+// add to your anchor
+const anchor = mindarThree.addAnchor(0);
+anchor.group.add(plane);
+
+// … rest of your start() / render loop / unmute code …
+
 
     // 5) When marker is found/lost, play or pause
     anchor.onTargetFound = async () => {
