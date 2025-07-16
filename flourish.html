@@ -59,40 +59,46 @@
       });
 
       // Create video element
-      const video = document.createElement('video');
-      video.src = './assets/Flourish.mp4'; // your video
-      video.crossOrigin = 'anonymous';
-      video.loop = false;
-      video.muted = true;       // ✅ required for autoplay
-      video.playsInline = true; // ✅ for iOS Safari
-      await video.play();       // ✅ plays silently
+      const video = document.createElement("video");
+video.src = "./assets/Flourish.mp4";
+video.crossOrigin = "anonymous";
+video.loop = true;
+video.muted = true;
+video.playsInline = true;
 
-      // Video texture mapped onto a plane
-      const texture = new THREE.VideoTexture(video);
-      const geometry = new THREE.PlaneGeometry(1, 0.5625); // 16:9 ratio
-const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+// Ensure video actually starts
+video.addEventListener("loadeddata", () => {
+  console.log("✅ Video loaded");
+  video.play().then(() => {
+    console.log("✅ Video playing");
+  }).catch(err => console.warn("⚠️ Autoplay blocked:", err));
+});
+
+await video.play();
+
+const texture = new THREE.VideoTexture(video);
+texture.encoding = THREE.sRGBEncoding; // Better color accuracy
+texture.minFilter = THREE.LinearFilter;
+texture.magFilter = THREE.LinearFilter;
+
+const geometry = new THREE.PlaneGeometry(1, 0.5625);
+const material = new THREE.MeshBasicMaterial({ map: texture });
+
 const plane = new THREE.Mesh(geometry, material);
-      plane.position.set(0, 0, 0); // center on marker
+plane.rotation.x = Math.PI; // flip to face correctly
 
+const anchor = mindarThree.addAnchor(0);
+anchor.group.add(plane);
 
-      const anchor = mindarThree.addAnchor(0);
-      anchor.group.add(plane);
+anchor.onTargetFound = () => {
+  console.log("✅ Marker detected");
+  document.getElementById("unmute-btn").style.display = "block";
+};
+anchor.onTargetLost = () => {
+  console.log("❌ Marker lost");
+  document.getElementById("unmute-btn").style.display = "none";
+};
 
-      // Handle tap-to-unmute
-      const unmuteBtn = document.getElementById('unmute-btn');
-
-      anchor.onTargetFound = () => {
-        unmuteBtn.style.display = 'block';
-      };
-      anchor.onTargetLost = () => {
-        unmuteBtn.style.display = 'none';
-      };
-
-      unmuteBtn.addEventListener('click', () => {
-        video.muted = false;
-        video.play();
-        unmuteBtn.style.display = 'none';
-      });
     };
 
     start();
