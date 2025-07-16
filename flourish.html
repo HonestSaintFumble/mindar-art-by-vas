@@ -81,30 +81,34 @@ texture.encoding = THREE.sRGBEncoding; // Better color accuracy
 texture.minFilter = THREE.LinearFilter;
 texture.magFilter = THREE.LinearFilter;
 
-// Skip marker anchor, just add a visible plane in front of camera
-const geometry = new THREE.PlaneGeometry(2, 1.2); // BIGGER plane
-const material = new THREE.MeshBasicMaterial({
-  color: 0xff0000,
-  side: THREE.DoubleSide // ✅ ensure both sides are visible
-});
+
+      const debugGeometry = new THREE.PlaneGeometry(2, 1.2);
+const debugMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.DoubleSide });
+const debugPlane = new THREE.Mesh(debugGeometry, debugMaterial);
+
+// Force in front of camera
+debugPlane.position.set(0, 0, -3);
+scene.add(debugPlane);
+
+      
+const geometry = new THREE.PlaneGeometry(1, 0.5625);
+const material = new THREE.MeshBasicMaterial({ map: texture });
+
 const plane = new THREE.Mesh(geometry, material);
+plane.rotation.x = Math.PI; // flip to face correctly
 
-// Force rotation and position so it faces camera
-plane.position.set(0, 0, 0);
-plane.rotation.set(0, 0, 0);
-
-// Anchor plane to marker
 const anchor = mindarThree.addAnchor(0);
 anchor.group.add(plane);
 
 anchor.onTargetFound = () => {
   console.log("✅ Marker detected");
-  plane.visible = true;  // ensure it's visible
+  document.getElementById("unmute-btn").style.display = "block";
 };
 anchor.onTargetLost = () => {
   console.log("❌ Marker lost");
-  plane.visible = false;
+  document.getElementById("unmute-btn").style.display = "none";
 };
+
 
     };
 
