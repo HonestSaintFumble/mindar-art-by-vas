@@ -81,11 +81,16 @@ texture.encoding = THREE.sRGBEncoding; // Better color accuracy
 texture.minFilter = THREE.LinearFilter;
 texture.magFilter = THREE.LinearFilter;
 
+// Skip marker anchor, just add a visible plane in front of camera
 const geometry = new THREE.PlaneGeometry(1, 0.5625);
-const material = new THREE.MeshBasicMaterial({ map: texture });
+const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+const debugPlane = new THREE.Mesh(geometry, material);
 
-const plane = new THREE.Mesh(geometry, material);
-plane.rotation.x = Math.PI; // flip to face correctly
+// Place plane in front of camera
+debugPlane.position.set(0, 0, -2); 
+
+scene.add(debugPlane);
+
 
 const anchor = mindarThree.addAnchor(0);
 anchor.group.add(plane);
