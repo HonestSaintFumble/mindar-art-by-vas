@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ARmind.js Video with Sound</title>
+
+  <!-- Load ARmind.js (or your specific build) -->
+  <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@master/dist/mindar-image-three.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.136.0/build/three.min.js"></script>
+
+  <style>
+    body { margin: 0; overflow: hidden; background: black; }
+    #unmute-btn {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 8px;
+      display: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <button id="unmute-btn">🔊 Tap for Sound</button>
+
+  <script type="module">
+    // Setup ARmind (same as MindAR)
+    const mindarThree = new window.MINDAR.IMAGE.MindARThree({
+      container: document.body,
+      imageTargetSrc: './targets.mind',  // compiled marker
+    });
+
+    const { renderer, scene, camera } = mindarThree;
+
+    const start = async () => {
+      await mindarThree.start();
+      renderer.setAnimationLoop(() => {
+        renderer.render(scene, camera);
+      });
+
+      // Create video element
+      const video = document.createElement('video');
+      video.src = './Flourish.mp4'; // your video
+      video.crossOrigin = 'anonymous';
+      video.loop = false;
+      video.muted = true;       // ✅ required for autoplay
+      video.playsInline = true; // ✅ for iOS Safari
+      await video.play();       // ✅ plays silently
+
+      // Video texture mapped onto a plane
+      const texture = new THREE.VideoTexture(video);
+      const geometry = new THREE.PlaneGeometry(1, 0.5625); // 16:9 ratio
+      const material = new THREE.MeshBasicMaterial({ map: texture });
+      const plane = new THREE.Mesh(geometry, material);
+
+      const anchor = mindarThree.addAnchor(0);
+      anchor.group.add(plane);
+
+      // Handle tap-to-unmute
+      const unmuteBtn = document.getElementById('unmute-btn');
+
+      anchor.onTargetFound = () => {
+        unmuteBtn.style.display = 'block';
+      };
+      anchor.onTargetLost = () => {
+        unmuteBtn.style.display = 'none';
+      };
+
+      unmuteBtn.addEventListener('click', () => {
+        video.muted = false;
+        video.play();
+        unmuteBtn.style.display = 'none';
+      });
+    };
+
+    start();
+  </script>
+</body>
+</html>
