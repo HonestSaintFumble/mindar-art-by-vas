@@ -69,6 +69,9 @@
 
       // Video texture mapped onto a plane
       const texture = new THREE.VideoTexture(video);
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      texture.colorSpace = THREE.SRGBColorSpace;
+      
       const geometry = new THREE.PlaneGeometry(1, 0.5625); // 16:9 ratio
       const material = new THREE.MeshBasicMaterial({ map: texture });
       const plane = new THREE.Mesh(geometry, material);
