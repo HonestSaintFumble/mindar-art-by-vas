@@ -53,7 +53,7 @@
     const { renderer, scene, camera } = mindarThree;
 
     const start = async () => {
-      await MindARThree.start();
+      await mindarThree.start();
       renderer.setAnimationLoop(() => {
         renderer.render(scene, camera);
       });
