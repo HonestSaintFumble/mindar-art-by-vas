@@ -3,10 +3,9 @@
   <head>
     <meta charset="utf-8" />
     <title>MindAR Video on Marker</title>
-<script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.0/dist/mindar-image.prod.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.5/dist/mindar-image.prod.js"></script>
 <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.0/dist/mindar-image-aframe.prod.js"></script>
-    <style>
+<script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.5/dist/mindar-image-aframe.prod.js"></script>    <style>
       body { margin: 0; overflow: hidden; }
       #ar-container { width: 100vw; height: 100vh; z-index: 1; }
        #unmute-btn {
@@ -46,7 +45,7 @@
             height="0.5625" 
             position="0 0 0"
             rotation="0 0 0"
-            autoplay="true">
+            autoplay="false">
           </a-video>
         </a-entity>
 
@@ -67,9 +66,8 @@
             console.warn("Video autoplay prevented:", e);
             // Allow user interaction to start it
             document.body.addEventListener("click", () => {
-              debugger;
               video.play();
-            }, { once: false });
+            }, { once: true });
           });
           startbtn.style.display = 'none';
         });
