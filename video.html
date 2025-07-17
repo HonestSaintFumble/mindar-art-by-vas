@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>MindAR Video on Marker</title>
+    <script src="./aframe.min.js"></script>
+    <script src="./mindar-image-aframe.prod.js"></script>
+    <style>
+      body { margin: 0; overflow: hidden; }
+      #ar-container { width: 100vw; height: 100vh; z-index: 1; }
+       #unmute-btn {
+      position: absolute;
+      width: 100vw; height: 100vh;
+      background: #000;
+      color: white;
+      border: none; padding: 10px 20px;
+      font-size: 16px; border-radius: 8px;
+      cursor: pointer;
+      z-index: 999;
+    }
+    </style>
+  </head>
+  <body>
+    <div id="ar-container">
+        <button id="unmute-btn">Tap to start</button>
+
+      <a-scene
+        mindar-image="imageTargetSrc: ./targets.mind; autoStart: true; uiScanning: yes;"
+        embedded
+        color-space="sRGB"
+        renderer="colorManagement: true, physicallyCorrectLights"
+        vr-mode-ui="enabled: false"
+        device-orientation-permission-ui="enabled: true">
+
+        <a-assets>
+          <video id="video" src="./assets/flourish.mp4" preload="true" autoplay="true" crossorigin="anonymous" ></video>
+        </a-assets>
+
+        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+        <a-entity mindar-image-target="targetIndex: 0">
+          <a-video 
+            src="#video"
+            width="1" 
+            height="0.5625" 
+            position="0 0 0"
+            rotation="0 0 0"
+            autoplay="true">
+          </a-video>
+        </a-entity>
+
+      </a-scene>
+    </div>
+
+
+  
+    
+    <script type="module">      
+      // Autoplay workaround for some browsers
+      document.addEventListener("DOMContentLoaded", () => {
+
+        const video = document.querySelector("#video");
+        const startbtn = document.querySelector("#unmute-btn");
+        startbtn.addEventListener('click', function () {
+            video.play().catch((e) => {
+            console.warn("Video autoplay prevented:", e);
+            // Allow user interaction to start it
+            document.body.addEventListener("click", () => {
+              video.play();
+            }, { once: true });
+          });
+          startbtn.style.display = 'none';
+        });
+        
+        
+
+      });
+
+
+      
+    </script>
+  </body>
+</html>
